@@ -1,0 +1,15 @@
+C:\Users\UTENTE\Desktop\test_finale_Curci_Mariano\TestFinale\bin\Debug\net9.0\TestFinale.exe
+C:\Users\UTENTE\Desktop\test_finale_Curci_Mariano\TestFinale\bin\Debug\net9.0\TestFinale.deps.json
+C:\Users\UTENTE\Desktop\test_finale_Curci_Mariano\TestFinale\bin\Debug\net9.0\TestFinale.runtimeconfig.json
+C:\Users\UTENTE\Desktop\test_finale_Curci_Mariano\TestFinale\bin\Debug\net9.0\TestFinale.dll
+C:\Users\UTENTE\Desktop\test_finale_Curci_Mariano\TestFinale\bin\Debug\net9.0\TestFinale.pdb
+C:\Users\UTENTE\Desktop\test_finale_Curci_Mariano\TestFinale\obj\Debug\net9.0\TestFinale.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\UTENTE\Desktop\test_finale_Curci_Mariano\TestFinale\obj\Debug\net9.0\TestFinale.AssemblyInfoInputs.cache
+C:\Users\UTENTE\Desktop\test_finale_Curci_Mariano\TestFinale\obj\Debug\net9.0\TestFinale.AssemblyInfo.cs
+C:\Users\UTENTE\Desktop\test_finale_Curci_Mariano\TestFinale\obj\Debug\net9.0\TestFinale.csproj.CoreCompileInputs.cache
+C:\Users\UTENTE\Desktop\test_finale_Curci_Mariano\TestFinale\obj\Debug\net9.0\TestFinale.sourcelink.json
+C:\Users\UTENTE\Desktop\test_finale_Curci_Mariano\TestFinale\obj\Debug\net9.0\TestFinale.dll
+C:\Users\UTENTE\Desktop\test_finale_Curci_Mariano\TestFinale\obj\Debug\net9.0\refint\TestFinale.dll
+C:\Users\UTENTE\Desktop\test_finale_Curci_Mariano\TestFinale\obj\Debug\net9.0\TestFinale.pdb
+C:\Users\UTENTE\Desktop\test_finale_Curci_Mariano\TestFinale\obj\Debug\net9.0\TestFinale.genruntimeconfig.cache
+C:\Users\UTENTE\Desktop\test_finale_Curci_Mariano\TestFinale\obj\Debug\net9.0\ref\TestFinale.dll
