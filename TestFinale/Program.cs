@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace SistemaGestioneAule
 {
-    // --- MODELLI DATI (Invariati con required) ---
+    // --- MODELLI DATI ---
     public class Aula
     {
         public required string Nome { get; set; }
@@ -14,8 +14,6 @@ namespace SistemaGestioneAule
     public class Prenotazione
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public required string NomeStudente { get; set; }
-        public required string CognomeStudente { get; set; }
         public required string MatricolaStudente { get; set; }
         public required string NomeAula { get; set; }
         public DateTime Giorno { get; set; }
@@ -30,6 +28,7 @@ namespace SistemaGestioneAule
     {
         public static List<Aula> Aule = new List<Aula>();
         public static List<Prenotazione> TutteLePrenotazioni = new List<Prenotazione>();
+        public static List<Studente> DatabaseStudenti = new List<Studente>();
 
         public static int GetPostiDisponibili(string nomeAula, DateTime giorno, string fascia)
         {
@@ -53,47 +52,60 @@ namespace SistemaGestioneAule
     {
         public required string Matricola { get; set; }
 
-        public void Prenota()
+        public void MenuStudente()
         {
-            Console.WriteLine("\n--- Nuova Prenotazione ---");
-            for (int i = 0; i < SistemaCentrale.Aule.Count; i++)
-                Console.WriteLine($"{i + 1}. {SistemaCentrale.Aule[i].Nome} (Max: {SistemaCentrale.Aule[i].CapienzaMassima})");
-            
-            Console.Write("Scegli il numero dell'aula: ");
-            if (!int.TryParse(Console.ReadLine(), out int scelta) || scelta < 1 || scelta > SistemaCentrale.Aule.Count) return;
-            
-            string aulaScelta = SistemaCentrale.Aule[scelta - 1].Nome;
-            Console.Write("Inserisci ore (es. 09:00-11:00): ");
-            string fascia = Console.ReadLine() ?? "";
-            Console.Write("Quanti posti? ");
-            int posti = int.Parse(Console.ReadLine() ?? "0");
-
-            int disp = SistemaCentrale.GetPostiDisponibili(aulaScelta, DateTime.Now.AddDays(1), fascia);
-            if (posti <= disp)
+            bool inSessione = true;
+            while (inSessione)
             {
-                SistemaCentrale.TutteLePrenotazioni.Add(new Prenotazione {
-                    NomeStudente = Nome, CognomeStudente = Cognome, MatricolaStudente = Matricola,
-                    NomeAula = aulaScelta, Giorno = DateTime.Now.AddDays(1), FasciaOraria = fascia, PostiPrenotati = posti
-                });
-                Console.WriteLine("OK: Prenotazione effettuata!");
+                Console.WriteLine($"\n--- MENU STUDENTE: {Nome} {Cognome} ({Matricola}) ---");
+                Console.WriteLine("1. Prenota Aula\n2. Visualizza/Cancella mie prenotazioni\n0. Logout");
+                Console.Write("Scelta: ");
+                switch (Console.ReadLine())
+                {
+                    case "1": EseguiPrenotazione(); break;
+                    case "2": GestisciPrenotazioni(); break;
+                    case "0": inSessione = false; break;
+                }
             }
-            else Console.WriteLine($"ERRORE: Solo {disp} posti disponibili.");
         }
 
-        public void VisualizzaEModifica()
+        private void EseguiPrenotazione()
+        {
+            Console.WriteLine("\nAule disponibili:");
+            for (int i = 0; i < SistemaCentrale.Aule.Count; i++)
+                Console.WriteLine($"{i + 1}. {SistemaCentrale.Aule[i].Nome} (Capienza: {SistemaCentrale.Aule[i].CapienzaMassima})");
+            
+            Console.Write("Scegli numero aula: ");
+            if (!int.TryParse(Console.ReadLine(), out int idx) || idx < 1 || idx > SistemaCentrale.Aule.Count) return;
+
+            string aula = SistemaCentrale.Aule[idx - 1].Nome;
+            Console.Write("Inserisci fascia oraria (es. 10-12): ");
+            string fascia = Console.ReadLine() ?? "";
+            Console.Write("Posti necessari: ");
+            int posti = int.Parse(Console.ReadLine() ?? "0");
+
+            int disponibili = SistemaCentrale.GetPostiDisponibili(aula, DateTime.Now.AddDays(1), fascia);
+            if (posti <= disponibili)
+            {
+                SistemaCentrale.TutteLePrenotazioni.Add(new Prenotazione {
+                    MatricolaStudente = Matricola, NomeAula = aula, Giorno = DateTime.Now.AddDays(1),
+                    FasciaOraria = fascia, PostiPrenotati = posti
+                });
+                Console.WriteLine("OK: Prenotazione salvata.");
+            }
+            else Console.WriteLine($"ERRORE: Disponibili solo {disponibili} posti.");
+        }
+
+        private void GestisciPrenotazioni()
         {
             var mie = SistemaCentrale.TutteLePrenotazioni.Where(p => p.MatricolaStudente == Matricola).ToList();
-            if (mie.Count == 0) { Console.WriteLine("Nessuna prenotazione."); return; }
-
-            for (int i = 0; i < mie.Count; i++) Console.WriteLine($"{i + 1}. {mie[i]}");
+            if (!mie.Any()) { Console.WriteLine("Nessuna prenotazione trovata."); return; }
             
-            Console.Write("\nVuoi (C)ancellarne una o (T)ornare indietro? ");
-            string opz = Console.ReadLine()?.ToUpper() ?? "";
-            if (opz == "C")
+            for (int i = 0; i < mie.Count; i++) Console.WriteLine($"{i + 1}. {mie[i]}");
+            Console.Write("\nDigita numero per cancellare o Invio per tornare: ");
+            if (int.TryParse(Console.ReadLine(), out int delIdx) && delIdx > 0 && delIdx <= mie.Count)
             {
-                Console.Write("Quale numero? ");
-                int idx = int.Parse(Console.ReadLine() ?? "0") - 1;
-                SistemaCentrale.TutteLePrenotazioni.Remove(mie[idx]);
+                SistemaCentrale.TutteLePrenotazioni.Remove(mie[delIdx - 1]);
                 Console.WriteLine("Cancellata.");
             }
         }
@@ -103,19 +115,24 @@ namespace SistemaGestioneAule
     {
         public void MenuAdmin()
         {
-            Console.WriteLine("\n--- Pannello Admin ---");
-            Console.WriteLine("1. Report Globale\n2. Aggiungi Aula\n3. Modifica Capienza\n0. Logout");
-            string scelta = Console.ReadLine() ?? "";
-            switch (scelta)
+            bool inAdmin = true;
+            while (inAdmin)
             {
-                case "1":
-                    foreach (var p in SistemaCentrale.TutteLePrenotazioni) Console.WriteLine(p);
-                    break;
-                case "2":
-                    Console.Write("Nome Aula: "); string n = Console.ReadLine() ?? "";
-                    Console.Write("Capienza: "); int c = int.Parse(Console.ReadLine() ?? "0");
-                    SistemaCentrale.Aule.Add(new Aula { Nome = n, CapienzaMassima = c });
-                    break;
+                Console.WriteLine("\n--- PANNELLO AMMINISTRATORE ---");
+                Console.WriteLine("1. Lista Completa Alunni\n2. Report Prenotazioni\n3. Aggiungi/Modifica Aule\n0. Logout");
+                Console.Write("Scelta: ");
+                switch (Console.ReadLine())
+                {
+                    case "1":
+                        Console.WriteLine("\nELENCO ISCRITTI:");
+                        foreach (var s in SistemaCentrale.DatabaseStudenti)
+                            Console.WriteLine($"- {s.Nome} {s.Cognome} (Matr: {s.Matricola})");
+                        break;
+                    case "2":
+                        foreach (var p in SistemaCentrale.TutteLePrenotazioni) Console.WriteLine(p);
+                        break;
+                    case "0": inAdmin = false; break;
+                }
             }
         }
     }
@@ -125,53 +142,66 @@ namespace SistemaGestioneAule
     {
         static void Main()
         {
-            // Setup Iniziale
-            SistemaCentrale.Aule.Add(new Aula { Nome = "Aula di Lettura", CapienzaMassima = 15 });
-            SistemaCentrale.Aule.Add(new Aula { Nome = "Aula di Scienze", CapienzaMassima = 20 });
-            SistemaCentrale.Aule.Add(new Aula { Nome = "Aula di Informatica", CapienzaMassima = 25 });
-            SistemaCentrale.Aule.Add(new Aula { Nome = "Aula di Matematica", CapienzaMassima = 10 });
-            SistemaCentrale.Aule.Add(new Aula { Nome = "Aula di Storia", CapienzaMassima = 30 });
-            
-            List<Studente> studenti = new List<Studente> {
-                new Studente { Nome = "Mario", Cognome = "Rossi", Matricola = "101" },
-                new Studente { Nome = "Anna", Cognome = "Verdi", Matricola = "102" },
-                new Studente { Nome = "Luca", Cognome = "Bianchi", Matricola = "103" },
-                new Studente { Nome = "Sara", Cognome = "Neri", Matricola = "104" },
-                new Studente { Nome = "Giulia", Cognome = "Gialli", Matricola = "105" }
-            };
-            Amministratore admin = new Amministratore { Nome = "Admin", Cognome = "Sistemi" };
+            SetupIniziale();
+            Amministratore admin = new Amministratore { Nome = "Responsabile", Cognome = "Sistemi" };
 
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("=== SISTEMA PRENOTAZIONI UNIVERSITARIE ===");
-                Console.WriteLine("Login come:");
-                for (int i = 0; i < studenti.Count; i++) Console.WriteLine($"{i + 1}. Studente: {studenti[i].Nome} {studenti[i].Cognome}");
+                Console.WriteLine("\n=== SISTEMA DI GESTIONE UNIVERSITARIA ===");
+                Console.WriteLine("1. Accesso Alunni");
                 Console.WriteLine("A. Amministratore");
                 Console.WriteLine("0. Esci");
-                
-                Console.Write("\nScelta: ");
-                string login = Console.ReadLine()?.ToUpper() ?? "";
+                Console.Write("Scelta: ");
+                string scelta = Console.ReadLine()?.ToUpper() ?? "";
 
-                if (login == "0") break;
-                if (login == "A")
+                if (scelta == "0") break;
+
+                if (scelta == "1")
+                {
+                    MenuRicercaStudente();
+                }
+                else if (scelta == "A")
                 {
                     admin.MenuAdmin();
                 }
-                else if (int.TryParse(login, out int sIdx) && sIdx <= studenti.Count)
-                {
-                    Studente attuale = studenti[sIdx - 1];
-                    bool inSessione = true;
-                    while (inSessione)
-                    {
-                        Console.WriteLine($"\nBenvenuto {attuale.Nome}. 1. Prenota | 2. Mie Prenotazioni | 0. Logout");
-                        string azione = Console.ReadLine() ?? "";
-                        if (azione == "1") attuale.Prenota();
-                        else if (azione == "2") attuale.VisualizzaEModifica();
-                        else inSessione = false;
-                    }
-                }
             }
+        }
+
+        static void MenuRicercaStudente()
+        {
+            Console.Write("\nCerca alunno (Nome, Cognome o Matricola): ");
+            string query = Console.ReadLine()?.ToLower() ?? "";
+
+            var risultati = SistemaCentrale.DatabaseStudenti.Where(s =>
+                s.Nome.ToLower().Contains(query) ||
+                s.Cognome.ToLower().Contains(query) ||
+                s.Matricola.Contains(query)).ToList();
+
+            if (risultati.Count == 0)
+            {
+                Console.WriteLine("Nessun alunno trovato.");
+            }
+            else if (risultati.Count == 1)
+            {
+                risultati[0].MenuStudente();
+            }
+            else
+            {
+                Console.WriteLine("Trovati più alunni. Sii più specifico:");
+                foreach (var r in risultati) Console.WriteLine($"- {r.Nome} {r.Cognome} ({r.Matricola})");
+            }
+        }
+
+        static void SetupIniziale()
+        {
+            SistemaCentrale.Aule.Add(new Aula { Nome = "Aula di Lettura", CapienzaMassima = 10 });
+            SistemaCentrale.Aule.Add(new Aula { Nome = "Aula di Scienze", CapienzaMassima = 20 });
+            
+            SistemaCentrale.DatabaseStudenti.Add(new Studente { Nome = "Mario", Cognome = "Rossi", Matricola = "1001" });
+            SistemaCentrale.DatabaseStudenti.Add(new Studente { Nome = "Anna", Cognome = "Verdi", Matricola = "1002" });
+            SistemaCentrale.DatabaseStudenti.Add(new Studente { Nome = "Luca", Cognome = "Bianchi", Matricola = "1003" });
+            SistemaCentrale.DatabaseStudenti.Add(new Studente { Nome = "Giulia", Cognome = "Neri", Matricola = "1004" });
+            SistemaCentrale.DatabaseStudenti.Add(new Studente { Nome = "Paolo", Cognome = "Gialli", Matricola = "1005" });
         }
     }
 }
